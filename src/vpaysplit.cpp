@@ -71,17 +71,16 @@ void vpaysplit::transfer(name from, name to, asset quantity, std::string memo) {
             // Otherwise use buyer vote_proxy and get the proxy details
             } else if (buyer->vote_proxy.to_string() != "") {
                 eosiosystem::voters_table voters("eosio"_n, "eosio"_n.value);
-                auto voter = voters.get(buyer->vote_proxy.value);
+                auto voter = voters.find(buyer->vote_proxy.value);
                 
                 // Make sure its a proxy that is voting for us
-                if (voter.is_proxy == 1) {
-                    for (auto prod = voter.producers.begin(); prod != voter.producers.end(); prod++) {
+                if (voter->is_proxy == 1) {
+                    for (auto prod = voter->producers.begin(); prod != voter->producers.end(); prod++) {
                         if (prod->value == _self.value) {
-                            vote_eos.set_amount(weight2eos(voter.last_vote_weight));
+                            vote_eos.set_amount(weight2eos(voter->last_vote_weight));
                         }
                     }
                 }
-                
             }
             
             // Make sure some voting eos was found
