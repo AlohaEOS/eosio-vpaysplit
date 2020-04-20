@@ -19,6 +19,9 @@ class [[eosio::contract("vpaysplit")]] vpaysplit : public contract {
         
         [[eosio::action]]
         void removebuyer(name account);
+        
+        [[eosio::action]]
+        void resetbuyers();
     
         [[eosio::on_notify("eosio.token::transfer")]]
         void transfer(name from, name to, asset quantity, std::string memo);

@@ -34,6 +34,14 @@ void vpaysplit::removebuyer(name account) {
     buyers.erase(itr);
 }
 
+void vpaysplit::resetbuyers() {
+    require_auth(_self);
+    buyer_index buyers(_self, _self.value);
+    for(auto itr = buyers.begin(); itr != buyers.end();) {
+        itr = buyers.erase(itr);
+    }
+}
+
 void vpaysplit::transfer(name from, name to, asset quantity, std::string memo) {
     if (to != _self || from == _self) return;
     
