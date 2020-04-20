@@ -55,7 +55,7 @@ void vpaysplit::transfer(name from, name to, asset quantity, std::string memo) {
         for (auto buyer = buyers.begin(); buyer != buyers.end(); buyer++) {
         
             // Calculate send amount
-            send_eos.set_amount(buyer->vote_eos.amount / bp_vote_eos * 0.8 * quantity.amount);
+            send_eos.set_amount(buyer->vote_eos.amount / bp_vote_eos * ((double) buyer->percent / 100) * quantity.amount);
             
             // And send it
             if (send_eos.amount > 0) {
