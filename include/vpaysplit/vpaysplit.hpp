@@ -6,7 +6,9 @@
 
 using namespace eosio;
 
-symbol eos_symbol = symbol("EOS", 4);
+const symbol eos_symbol = symbol("EOS", 4);
+const name test_account = "waaaaaaaaaat"_n;
+const bool test_enabled = true;
 
 class [[eosio::contract("vpaysplit")]] vpaysplit : public contract {
     public:
