@@ -15,7 +15,7 @@ class [[eosio::contract("vpaysplit")]] vpaysplit : public contract {
         using contract::contract;
         
         [[eosio::action]]
-        void setbuyer(name account, asset vote_eos, uint32_t percent, std::string memo);
+        void setbuyer(name account, asset vote_eos, name vote_proxy, uint32_t percent, std::string memo);
         
         [[eosio::action]]
         void removebuyer(name account);
@@ -30,6 +30,7 @@ class [[eosio::contract("vpaysplit")]] vpaysplit : public contract {
         struct [[eosio::table]] buyer {
             name account;
             asset vote_eos;
+            name vote_proxy;
             uint32_t percent;
             std::string memo;
             
@@ -37,5 +38,7 @@ class [[eosio::contract("vpaysplit")]] vpaysplit : public contract {
         };
         
         typedef eosio::multi_index< "buyers"_n, buyer > buyer_index;
+        
+        double weight2eos(double weight);
 };
 
