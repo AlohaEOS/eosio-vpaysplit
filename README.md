@@ -35,7 +35,7 @@ cleos set contract BPACCOUNT ./build vpaysplit.wasm vpaysplit.abi -p BPACCOUNT
 Example to setup payments for Colin Talks Crypto Rewards Proxy:
 
 ```
-cleos push action BPACCOUNT setbuyer '{"account":"genereospool","vote_eos":"0.0000 EOS","vote_proxy":"colinrewards","percent":80,"memo":""}' -p BPACCOUNT
+cleos push action BPACCOUNT setbuyer '{"account":"genereospool","vote_eos":"0.0000 EOS","vote_proxy":"colinrewards","percent":80,"memo":"BPACCOUNT"}' -p BPACCOUNT
 ```
 
 Example to setup payments for Value Proxy:
