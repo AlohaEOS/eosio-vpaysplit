@@ -26,6 +26,7 @@ EOSIO_CONTRACTS_PATH=/path/to/eosio.contracts ./build.sh
 ```
 cd eosio-vpaysplit
 cleos set contract BPACCOUNT ./build vpaysplit.wasm vpaysplit.abi -p BPACCOUNT
+cleos set account permission alohaeosprod active --add-code
 ```
 
 ## Configuring
