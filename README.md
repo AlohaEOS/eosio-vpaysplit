@@ -14,6 +14,8 @@ The contract is meant to be installed on a BP account, and can do the following 
 
 ### Adding or updating payments
 
+Below are examples for setting up payments to some of the common EOS rewards proxies. Keep in mind the example percentages may not be perfect as the numbers to calculate rewards can fluctuate throughout the day. It's best to keep an eye on your balances with these proxies and adjust the percentages if needed.
+
 Example to setup payments for Colin Talks Crypto Rewards Proxy:
 
 ```
