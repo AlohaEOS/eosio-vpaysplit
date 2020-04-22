@@ -3,31 +3,12 @@ The `eosio-vpaysplit` contract is for splitting BP vote rewards to multiple part
 
 ## Supported use cases when claiming BP rewards
 
+The contract is meant to be installed on a BP account, and can do the following for any number of accounts when `claimrewards` is called:
+
 - Pay an account based on percentage of vpay increase and dynamically calculated vote weight of a proxy, automatically detecting and stopping daily payment if proxy unregisters or unvotes the BP.
 
 - Pay an account based on percentage of vpay increase and fixed vote weight.
 
-## Building and deploying
-
-### Dependencies
-
-- eosio.cdt 1.7.0+ https://github.com/EOSIO/eosio.cdt/releases
-- eosio.contracts 1.8.3+ https://github.com/EOSIO/eosio.contracts/releases
-
-### Build
-
-```
-cd eosio-vpaysplit
-EOSIO_CONTRACTS_PATH=/path/to/eosio.contracts ./build.sh
-```
-
-### Deploy
-
-```
-cd eosio-vpaysplit
-cleos set contract BPACCOUNT ./build vpaysplit.wasm vpaysplit.abi -p BPACCOUNT
-cleos set account permission BPACCOUNT active --add-code
-```
 
 ## Configuring
 
@@ -64,3 +45,28 @@ Example to remove payment to "someaccount":
 ```
 cleos push action BPACCOUNT removebuyer '{"account":"someaccount"}' -p BPACCOUNT
 ```
+
+## Building and deploying
+
+### Dependencies
+
+- eosio.cdt 1.7.0+ https://github.com/EOSIO/eosio.cdt/releases
+- eosio.contracts 1.8.3+ https://github.com/EOSIO/eosio.contracts/releases
+
+### Build
+
+```
+cd eosio-vpaysplit
+EOSIO_CONTRACTS_PATH=/path/to/eosio.contracts ./build.sh
+```
+
+### Deploy
+
+```
+cd eosio-vpaysplit
+cleos set contract BPACCOUNT ./build vpaysplit.wasm vpaysplit.abi -p BPACCOUNT
+cleos set account permission BPACCOUNT active --add-code
+```
+## Running
+
+Just run `claimrewards` as usual. The contract will fire when a transfer is sent from `eosio.vpay` to your BP account.
