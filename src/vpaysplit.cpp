@@ -2,7 +2,7 @@
 
 using namespace eosio;
 
-void vpaysplit::setbuyer(name account, asset vote_eos, name vote_proxy, uint32_t percent, std::string memo) {
+void vpaysplit::setbuyer(name account, asset vote_eos, name vote_proxy, asset send_eos, uint32_t send_percent, name send_account, std::string send_memo) {
     require_auth(_self);
     buyer_index buyers(_self, _self.value);
     
@@ -13,15 +13,19 @@ void vpaysplit::setbuyer(name account, asset vote_eos, name vote_proxy, uint32_t
             row.account = account;
             row.vote_eos = vote_eos;
             row.vote_proxy = vote_proxy;
-            row.percent = percent;
-            row.memo = memo;
+            row.send_eos = send_eos;
+            row.send_percent = send_percent;
+            row.send_account = send_account;
+            row.send_memo = send_memo;
         });
     } else {
         buyers.modify(itr, _self, [&](auto &row) {
             row.vote_eos = vote_eos;
             row.vote_proxy = vote_proxy;
-            row.percent = percent;
-            row.memo = memo;
+            row.send_eos = send_eos;
+            row.send_percent = send_percent;
+            row.send_account = send_account;
+            row.send_memo = send_memo;
         });
     }   
 }
@@ -44,15 +48,18 @@ void vpaysplit::resetbuyers() {
     }
 }
 
-void vpaysplit::transfer(name from, name to, asset quantity, std::string memo) {
+void vpaysplit::transfer(name from, name to, asset quantity, std::string send_memo) {
     if (to != _self || from == _self) return;
     
-    if ((from == "eosio.vpay"_n || (test_enabled && from == test_account))) {
+    if ((from == "eosio.vpay"_n || from == "eosio.bpay"_n || (test_enabled && from == test_account))) {
         
         // Get total votes from producers table
         eosiosystem::producers_table producers("eosio"_n, "eosio"_n.value);
         auto prod = producers.get(_self.value, "must be a registered producer");
         check(prod.is_active, "must be an active producer");
+        
+        // Proxy tracking
+        bool is_proxy_voting = false;
         
         // Calculate eos from vote weight
         double bp_vote_eos = weight2eos(prod.total_votes);
@@ -64,7 +71,8 @@ void vpaysplit::transfer(name from, name to, asset quantity, std::string memo) {
         for (auto buyer = buyers.begin(); buyer != buyers.end(); buyer++) {
             vote_eos.set_amount(0);
             
-            // If buyer vote_eos is supplied use that
+            // Calculate vote eos
+            // If buyer vote_eos is supplied use that. We ignore whether they are voting for us in this case.
             if (buyer->vote_eos.amount > 0) {
                 vote_eos = buyer->vote_eos;
                 
@@ -73,32 +81,51 @@ void vpaysplit::transfer(name from, name to, asset quantity, std::string memo) {
                 eosiosystem::voters_table voters("eosio"_n, "eosio"_n.value);
                 auto voter = voters.find(buyer->vote_proxy.value);
                 
-                // Make sure its a proxy that is voting for us
+                // Make sure its a proxy, and its voting for us
                 if (voter->is_proxy == 1) {
                     for (auto prod = voter->producers.begin(); prod != voter->producers.end(); prod++) {
                         if (prod->value == _self.value) {
+                            is_proxy_voting = true;
                             vote_eos.set_amount(weight2eos(voter->last_vote_weight));
                         }
                     }
                 }
             }
             
-            // Make sure some voting eos was found
-            if (vote_eos.amount > 0) {
-            
-                // Calculate send amount
-                send_eos.set_amount(vote_eos.amount / bp_vote_eos * ((double) buyer->percent / 100) * quantity.amount);
+            // Calculate send eos
+            // If static eos found, use that
+            if (buyer->send_eos.amount > 0) {
+                // If proxy set, require the vote
+                if (buyer->vote_proxy.to_string() != "") {
+                    if (is_proxy_voting) {
+                        send_eos.set_amount(buyer->send_eos.amount);
+                    }
+                } else {
+                    send_eos.set_amount(buyer->send_eos.amount);
+                }
                 
-                // Send it
-                if (send_eos.amount > 0) {
-                    action(
-                        permission_level{_self, "active"_n},
-                        "eosio.token"_n,
-                        "transfer"_n,
-                        std::make_tuple(_self, buyer->account, send_eos, buyer->memo)
-                    ).send(); 
-                }           
+            // Otherwise if voting eos found, calculate from vote weight
+            } else if (vote_eos.amount > 0) {
+                send_eos.set_amount(vote_eos.amount / bp_vote_eos * ((double) buyer->send_percent / 100) * quantity.amount);
             }
+            
+            // Anything to send?
+            if (send_eos.amount > 0) {
+            
+                // Where to send
+                name send_account = buyer->account;
+                if (buyer->send_account.to_string() != "") {
+                    send_account = buyer->send_account;
+                }
+     
+                // Send it
+                action(
+                    permission_level{_self, "active"_n},
+                    "eosio.token"_n,
+                    "transfer"_n,
+                    std::make_tuple(_self, send_account, send_eos, buyer->send_memo)
+                ).send(); 
+            }           
         }
         
     }
